@@ -14,8 +14,8 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		var input struct {
-			Key       string    `sikat:"key"`
-			CreatedAt time.Time `sikat:"created_at"`
+			Key       string    `qwery:"key"`
+			CreatedAt time.Time `qwery:"created_at"`
 		}
 
 		var output = make(map[string]interface{})
@@ -39,8 +39,8 @@ func TestDecode(t *testing.T) {
 		}
 
 		var output struct {
-			Key         string `sikat:"key"`
-			FullAddress string `sikat:"full_address"`
+			Key         string `qwery:"key"`
+			FullAddress string `qwery:"full_address"`
 		}
 
 		err := Decode(input, &output)
@@ -57,8 +57,8 @@ func TestDecode(t *testing.T) {
 		}
 
 		var output struct {
-			Key         string `sikat:"key"`
-			FullAddress string `sikat:"full_address"`
+			Key         string `qwery:"key"`
+			FullAddress string `qwery:"full_address"`
 		}
 
 		err := Decode(input, &output)
@@ -70,16 +70,16 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type Address struct {
-			Street     string `sikat:"street"`
-			City       string `sikat:"city"`
-			PostalCode string `sikat:"postal_code"`
+			Street     string `qwery:"street"`
+			City       string `qwery:"city"`
+			PostalCode string `qwery:"postal_code"`
 		}
 
 		type Person struct {
-			Name      string    `sikat:"name"`
-			Age       int       `sikat:"age"`
-			Address   Address   `sikat:"address"`
-			CreatedAt time.Time `sikat:"created_at"`
+			Name      string    `qwery:"name"`
+			Age       int       `qwery:"age"`
+			Address   Address   `qwery:"address"`
+			CreatedAt time.Time `qwery:"created_at"`
 		}
 
 		input := Person{
@@ -113,16 +113,16 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type Contact struct {
-			Email string `sikat:"email"`
-			Phone string `sikat:"phone"`
+			Email string `qwery:"email"`
+			Phone string `qwery:"phone"`
 		}
 
 		type User struct {
-			ID       int       `sikat:"id"`
-			Username string    `sikat:"username"`
-			Contact  Contact   `sikat:"contact"`
-			IsActive bool      `sikat:"is_active"`
-			JoinedAt time.Time `sikat:"joined_at"`
+			ID       int       `qwery:"id"`
+			Username string    `qwery:"username"`
+			Contact  Contact   `qwery:"contact"`
+			IsActive bool      `qwery:"is_active"`
+			JoinedAt time.Time `qwery:"joined_at"`
 		}
 
 		joinTime := time.Date(2023, 1, 15, 14, 30, 0, 0, time.UTC)
@@ -154,20 +154,20 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type Department struct {
-			Name string `sikat:"name"`
-			Code string `sikat:"code"`
+			Name string `qwery:"name"`
+			Code string `qwery:"code"`
 		}
 
 		type Company struct {
-			Name       string     `sikat:"name"`
-			Department Department `sikat:"department"`
+			Name       string     `qwery:"name"`
+			Department Department `qwery:"department"`
 		}
 
 		type Employee struct {
-			Name     string    `sikat:"name"`
-			Position string    `sikat:"position"`
-			Company  Company   `sikat:"company"`
-			HiredAt  time.Time `sikat:"hired_at"`
+			Name     string    `qwery:"name"`
+			Position string    `qwery:"position"`
+			Company  Company   `qwery:"company"`
+			HiredAt  time.Time `qwery:"hired_at"`
 		}
 
 		hiredTime := time.Date(2022, 6, 1, 9, 0, 0, 0, time.UTC)
@@ -209,15 +209,15 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type Tag struct {
-			Name  string `sikat:"name"`
-			Color string `sikat:"color"`
+			Name  string `qwery:"name"`
+			Color string `qwery:"color"`
 		}
 
 		type Article struct {
-			Title     string    `sikat:"title"`
-			Content   string    `sikat:"content"`
-			Tags      []Tag     `sikat:"tags"`
-			CreatedAt time.Time `sikat:"created_at"`
+			Title     string    `qwery:"title"`
+			Content   string    `qwery:"content"`
+			Tags      []Tag     `qwery:"tags"`
+			CreatedAt time.Time `qwery:"created_at"`
 		}
 
 		createdTime := time.Date(2023, 11, 10, 15, 45, 0, 0, time.UTC)
@@ -254,24 +254,24 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type Address struct {
-			Type    string `sikat:"type"`
-			Street  string `sikat:"street"`
-			City    string `sikat:"city"`
-			Country string `sikat:"country"`
+			Type    string `qwery:"type"`
+			Street  string `qwery:"street"`
+			City    string `qwery:"city"`
+			Country string `qwery:"country"`
 		}
 
 		type Phone struct {
-			Type   string `sikat:"type"`
-			Number string `sikat:"number"`
+			Type   string `qwery:"type"`
+			Number string `qwery:"number"`
 		}
 
 		type Customer struct {
-			ID        int       `sikat:"id"`
-			Name      string    `sikat:"name"`
-			Email     string    `sikat:"email"`
-			Addresses []Address `sikat:"addresses"`
-			Phones    []Phone   `sikat:"phones"`
-			CreatedAt time.Time `sikat:"created_at"`
+			ID        int       `qwery:"id"`
+			Name      string    `qwery:"name"`
+			Email     string    `qwery:"email"`
+			Addresses []Address `qwery:"addresses"`
+			Phones    []Phone   `qwery:"phones"`
+			CreatedAt time.Time `qwery:"created_at"`
 		}
 
 		createdTime := time.Date(2023, 5, 15, 10, 30, 0, 0, time.UTC)
@@ -324,24 +324,24 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type OrderItem struct {
-			ProductID int     `sikat:"product_id"`
-			Name      string  `sikat:"name"`
-			Quantity  int     `sikat:"quantity"`
-			Price     float64 `sikat:"price"`
+			ProductID int     `qwery:"product_id"`
+			Name      string  `qwery:"name"`
+			Quantity  int     `qwery:"quantity"`
+			Price     float64 `qwery:"price"`
 		}
 
 		type PaymentMethod struct {
-			Type   string  `sikat:"type"`
-			Amount float64 `sikat:"amount"`
+			Type   string  `qwery:"type"`
+			Amount float64 `qwery:"amount"`
 		}
 
 		type Order struct {
-			ID             string          `sikat:"id"`
-			CustomerName   string          `sikat:"customer_name"`
-			Items          []OrderItem     `sikat:"items"`
-			PaymentMethods []PaymentMethod `sikat:"payment_methods"`
-			Total          float64         `sikat:"total"`
-			OrderDate      time.Time       `sikat:"order_date"`
+			ID             string          `qwery:"id"`
+			CustomerName   string          `qwery:"customer_name"`
+			Items          []OrderItem     `qwery:"items"`
+			PaymentMethods []PaymentMethod `qwery:"payment_methods"`
+			Total          float64         `qwery:"total"`
+			OrderDate      time.Time       `qwery:"order_date"`
 		}
 
 		orderTime := time.Date(2023, 8, 20, 14, 15, 30, 0, time.UTC)
@@ -393,24 +393,24 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type Skill struct {
-			Name  string `sikat:"name"`
-			Level string `sikat:"level"`
+			Name  string `qwery:"name"`
+			Level string `qwery:"level"`
 		}
 
 		type Project struct {
-			Name        string    `sikat:"name"`
-			Description string    `sikat:"description"`
-			Skills      []Skill   `sikat:"skills"`
-			StartDate   time.Time `sikat:"start_date"`
-			EndDate     time.Time `sikat:"end_date"`
+			Name        string    `qwery:"name"`
+			Description string    `qwery:"description"`
+			Skills      []Skill   `qwery:"skills"`
+			StartDate   time.Time `qwery:"start_date"`
+			EndDate     time.Time `qwery:"end_date"`
 		}
 
 		type Employee struct {
-			ID       int       `sikat:"id"`
-			Name     string    `sikat:"name"`
-			Position string    `sikat:"position"`
-			Projects []Project `sikat:"projects"`
-			JoinedAt time.Time `sikat:"joined_at"`
+			ID       int       `qwery:"id"`
+			Name     string    `qwery:"name"`
+			Position string    `qwery:"position"`
+			Projects []Project `qwery:"projects"`
+			JoinedAt time.Time `qwery:"joined_at"`
 		}
 
 		joinTime := time.Date(2022, 1, 10, 9, 0, 0, 0, time.UTC)
@@ -486,15 +486,15 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type Category struct {
-			ID   int    `sikat:"id"`
-			Name string `sikat:"name"`
+			ID   int    `qwery:"id"`
+			Name string `qwery:"name"`
 		}
 
 		type Product struct {
-			ID         int        `sikat:"id"`
-			Name       string     `sikat:"name"`
-			Categories []Category `sikat:"categories"`
-			CreatedAt  time.Time  `sikat:"created_at"`
+			ID         int        `qwery:"id"`
+			Name       string     `qwery:"name"`
+			Categories []Category `qwery:"categories"`
+			CreatedAt  time.Time  `qwery:"created_at"`
 		}
 
 		createdTime := time.Date(2023, 12, 1, 10, 0, 0, 0, time.UTC)
@@ -524,14 +524,14 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type Comment struct {
-			ID      int    `sikat:"id"`
-			Content string `sikat:"content"`
+			ID      int    `qwery:"id"`
+			Content string `qwery:"content"`
 		}
 
 		type Post struct {
-			ID       int       `sikat:"id"`
-			Title    string    `sikat:"title"`
-			Comments []Comment `sikat:"comments"`
+			ID       int       `qwery:"id"`
+			Title    string    `qwery:"title"`
+			Comments []Comment `qwery:"comments"`
 		}
 
 		input := Post{
@@ -556,28 +556,28 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type WebhookSunfishLoanInstallment struct {
-			InstallmentDate   string `sikat:"installment_date"`
-			InstallmentAmount string `sikat:"installment_amount"`
-			Paid              string `sikat:"paid"`
+			InstallmentDate   string `qwery:"installment_date"`
+			InstallmentAmount string `qwery:"installment_amount"`
+			Paid              string `qwery:"paid"`
 		}
 
 		type WebhookSunfishLoan struct {
-			NIKEmployee  string                          `sikat:"nik_employee"`
-			ResiNumber   string                          `sikat:"resi_number"`
-			TicketNumber string                          `sikat:"ticket_number"`
-			LoanType     string                          `sikat:"loan_type"`
-			LoanStatus   string                          `sikat:"loan_status"`
-			LoanAmount   string                          `sikat:"loan_amount"`
-			Tenor        string                          `sikat:"tenor"`
-			LoanNumber   string                          `sikat:"loan_number"`
-			Notes        string                          `sikat:"notes"`
-			LastUpdate   string                          `sikat:"last_update"`
-			CancelDate   string                          `sikat:"cancel_date"`
-			PeriodStart  string                          `sikat:"period_start"`
-			PeriodEnd    string                          `sikat:"period_end"`
-			Installment  []WebhookSunfishLoanInstallment `sikat:"installment"`
-			LoanPaid     string                          `sikat:"loan_paid"`
-			SisaLoan     string                          `sikat:"sisa_loan"`
+			NIKEmployee  string                          `qwery:"nik_employee"`
+			ResiNumber   string                          `qwery:"resi_number"`
+			TicketNumber string                          `qwery:"ticket_number"`
+			LoanType     string                          `qwery:"loan_type"`
+			LoanStatus   string                          `qwery:"loan_status"`
+			LoanAmount   string                          `qwery:"loan_amount"`
+			Tenor        string                          `qwery:"tenor"`
+			LoanNumber   string                          `qwery:"loan_number"`
+			Notes        string                          `qwery:"notes"`
+			LastUpdate   string                          `qwery:"last_update"`
+			CancelDate   string                          `qwery:"cancel_date"`
+			PeriodStart  string                          `qwery:"period_start"`
+			PeriodEnd    string                          `qwery:"period_end"`
+			Installment  []WebhookSunfishLoanInstallment `qwery:"installment"`
+			LoanPaid     string                          `qwery:"loan_paid"`
+			SisaLoan     string                          `qwery:"sisa_loan"`
 		}
 
 		input := WebhookSunfishLoan{
@@ -610,7 +610,7 @@ func TestDecode(t *testing.T) {
 		err := Decode(input, &output)
 		assert.NoError(t, err)
 
-		// Check main fields with sikat tags
+		// Check main fields with qwery tags
 		assert.Equal(t, "20020539", output["nik_employee"])
 		assert.Equal(t, "005054192487", output["resi_number"])
 		assert.Equal(t, "P-17", output["ticket_number"])
@@ -627,7 +627,7 @@ func TestDecode(t *testing.T) {
 		assert.Equal(t, "11266.666667", output["loan_paid"])
 		assert.Equal(t, "0.000000", output["sisa_loan"])
 
-		// Check installment slice with proper sikat tags
+		// Check installment slice with proper qwery tags
 		installments, ok := output["installment"].([]WebhookSunfishLoanInstallment)
 		assert.True(t, ok, "installment should be a slice of WebhookSunfishLoanInstallment")
 		assert.Len(t, installments, 1)
@@ -635,7 +635,7 @@ func TestDecode(t *testing.T) {
 		assert.Equal(t, "11266.666666666666", installments[0].InstallmentAmount)
 		assert.Equal(t, "Y", installments[0].Paid)
 
-		// Verify that sikat tags are NOT in the output (should not have PascalCase keys)
+		// Verify that qwery tags are NOT in the output (should not have PascalCase keys)
 		assert.NotContains(t, output, "InstallmentDate", "Should not contain PascalCase field name")
 		assert.NotContains(t, output, "InstallmentAmount", "Should not contain PascalCase field name")
 		assert.NotContains(t, output, "Paid", "Should not contain PascalCase field name")
@@ -647,28 +647,28 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type WebhookSunfishLoanInstallment struct {
-			InstallmentDate   string `sikat:"installment_date"`
-			InstallmentAmount string `sikat:"installment_amount"`
-			Paid              string `sikat:"paid"`
+			InstallmentDate   string `qwery:"installment_date"`
+			InstallmentAmount string `qwery:"installment_amount"`
+			Paid              string `qwery:"paid"`
 		}
 
 		type WebhookSunfishLoan struct {
-			NIKEmployee  string                          `sikat:"nik_employee"`
-			ResiNumber   string                          `sikat:"resi_number"`
-			TicketNumber string                          `sikat:"ticket_number"`
-			LoanType     string                          `sikat:"loan_type"`
-			LoanStatus   string                          `sikat:"loan_status"`
-			LoanAmount   string                          `sikat:"loan_amount"`
-			Tenor        string                          `sikat:"tenor"`
-			LoanNumber   string                          `sikat:"loan_number"`
-			Notes        string                          `sikat:"notes"`
-			LastUpdate   string                          `sikat:"last_update"`
-			CancelDate   string                          `sikat:"cancel_date"`
-			PeriodStart  string                          `sikat:"period_start"`
-			PeriodEnd    string                          `sikat:"period_end"`
-			Installment  []WebhookSunfishLoanInstallment `sikat:"installment"`
-			LoanPaid     string                          `sikat:"loan_paid"`
-			SisaLoan     string                          `sikat:"sisa_loan"`
+			NIKEmployee  string                          `qwery:"nik_employee"`
+			ResiNumber   string                          `qwery:"resi_number"`
+			TicketNumber string                          `qwery:"ticket_number"`
+			LoanType     string                          `qwery:"loan_type"`
+			LoanStatus   string                          `qwery:"loan_status"`
+			LoanAmount   string                          `qwery:"loan_amount"`
+			Tenor        string                          `qwery:"tenor"`
+			LoanNumber   string                          `qwery:"loan_number"`
+			Notes        string                          `qwery:"notes"`
+			LastUpdate   string                          `qwery:"last_update"`
+			CancelDate   string                          `qwery:"cancel_date"`
+			PeriodStart  string                          `qwery:"period_start"`
+			PeriodEnd    string                          `qwery:"period_end"`
+			Installment  []WebhookSunfishLoanInstallment `qwery:"installment"`
+			LoanPaid     string                          `qwery:"loan_paid"`
+			SisaLoan     string                          `qwery:"sisa_loan"`
 		}
 
 		input := map[string]interface{}{
@@ -701,7 +701,7 @@ func TestDecode(t *testing.T) {
 		err := Decode(input, &output)
 		assert.NoError(t, err)
 
-		// Check all fields are properly mapped using sikat tags
+		// Check all fields are properly mapped using qwery tags
 		assert.Equal(t, "20020539", output.NIKEmployee)
 		assert.Equal(t, "005054192487", output.ResiNumber)
 		assert.Equal(t, "P-17", output.TicketNumber)
@@ -725,32 +725,32 @@ func TestDecode(t *testing.T) {
 		assert.Equal(t, "Y", output.Installment[0].Paid)
 	})
 
-	t.Run("Success flexible mapping PascalCase to sikat tags", func(t *testing.T) {
+	t.Run("Success flexible mapping PascalCase to qwery tags", func(t *testing.T) {
 		t.Parallel()
 
 		type WebhookSunfishLoanInstallment struct {
-			InstallmentDate   string `sikat:"installment_date"`
-			InstallmentAmount string `sikat:"installment_amount"`
-			Paid              string `sikat:"paid"`
+			InstallmentDate   string `qwery:"installment_date"`
+			InstallmentAmount string `qwery:"installment_amount"`
+			Paid              string `qwery:"paid"`
 		}
 
 		type WebhookSunfishLoan struct {
-			NIKEmployee  string                          `sikat:"nik_employee"`
-			ResiNumber   string                          `sikat:"resi_number"`
-			TicketNumber string                          `sikat:"ticket_number"`
-			LoanType     string                          `sikat:"loan_type"`
-			LoanStatus   string                          `sikat:"loan_status"`
-			LoanAmount   string                          `sikat:"loan_amount"`
-			Tenor        string                          `sikat:"tenor"`
-			LoanNumber   string                          `sikat:"loan_number"`
-			Notes        string                          `sikat:"notes"`
-			LastUpdate   string                          `sikat:"last_update"`
-			CancelDate   string                          `sikat:"cancel_date"`
-			PeriodStart  string                          `sikat:"period_start"`
-			PeriodEnd    string                          `sikat:"period_end"`
-			Installment  []WebhookSunfishLoanInstallment `sikat:"installment"`
-			LoanPaid     string                          `sikat:"loan_paid"`
-			SisaLoan     string                          `sikat:"sisa_loan"`
+			NIKEmployee  string                          `qwery:"nik_employee"`
+			ResiNumber   string                          `qwery:"resi_number"`
+			TicketNumber string                          `qwery:"ticket_number"`
+			LoanType     string                          `qwery:"loan_type"`
+			LoanStatus   string                          `qwery:"loan_status"`
+			LoanAmount   string                          `qwery:"loan_amount"`
+			Tenor        string                          `qwery:"tenor"`
+			LoanNumber   string                          `qwery:"loan_number"`
+			Notes        string                          `qwery:"notes"`
+			LastUpdate   string                          `qwery:"last_update"`
+			CancelDate   string                          `qwery:"cancel_date"`
+			PeriodStart  string                          `qwery:"period_start"`
+			PeriodEnd    string                          `qwery:"period_end"`
+			Installment  []WebhookSunfishLoanInstallment `qwery:"installment"`
+			LoanPaid     string                          `qwery:"loan_paid"`
+			SisaLoan     string                          `qwery:"sisa_loan"`
 		}
 
 		// This simulates the JSON data with mixed PascalCase fields
@@ -804,28 +804,28 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type WebhookSunfishLoanInstallment struct {
-			InstallmentDate   string `sikat:"installment_date"`
-			InstallmentAmount string `sikat:"installment_amount"`
-			Paid              string `sikat:"paid"`
+			InstallmentDate   string `qwery:"installment_date"`
+			InstallmentAmount string `qwery:"installment_amount"`
+			Paid              string `qwery:"paid"`
 		}
 
 		type WebhookSunfishLoan struct {
-			NIKEmployee  string                          `sikat:"nik_employee"`
-			ResiNumber   string                          `sikat:"resi_number"`
-			TicketNumber string                          `sikat:"ticket_number"`
-			LoanType     string                          `sikat:"loan_type"`
-			LoanStatus   string                          `sikat:"loan_status"`
-			LoanAmount   string                          `sikat:"loan_amount"`
-			Tenor        string                          `sikat:"tenor"`
-			LoanNumber   string                          `sikat:"loan_number"`
-			Notes        string                          `sikat:"notes"`
-			LastUpdate   string                          `sikat:"last_update"`
-			CancelDate   string                          `sikat:"cancel_date"`
-			PeriodStart  string                          `sikat:"period_start"`
-			PeriodEnd    string                          `sikat:"period_end"`
-			Installment  []WebhookSunfishLoanInstallment `sikat:"installment"`
-			LoanPaid     string                          `sikat:"loan_paid"`
-			SisaLoan     string                          `sikat:"sisa_loan"`
+			NIKEmployee  string                          `qwery:"nik_employee"`
+			ResiNumber   string                          `qwery:"resi_number"`
+			TicketNumber string                          `qwery:"ticket_number"`
+			LoanType     string                          `qwery:"loan_type"`
+			LoanStatus   string                          `qwery:"loan_status"`
+			LoanAmount   string                          `qwery:"loan_amount"`
+			Tenor        string                          `qwery:"tenor"`
+			LoanNumber   string                          `qwery:"loan_number"`
+			Notes        string                          `qwery:"notes"`
+			LastUpdate   string                          `qwery:"last_update"`
+			CancelDate   string                          `qwery:"cancel_date"`
+			PeriodStart  string                          `qwery:"period_start"`
+			PeriodEnd    string                          `qwery:"period_end"`
+			Installment  []WebhookSunfishLoanInstallment `qwery:"installment"`
+			LoanPaid     string                          `qwery:"loan_paid"`
+			SisaLoan     string                          `qwery:"sisa_loan"`
 		}
 
 		// This reproduces the exact JSON structure you received with problematic PascalCase
@@ -861,7 +861,7 @@ func TestDecode(t *testing.T) {
 		err := Decode(input, &output)
 		assert.NoError(t, err)
 
-		// Main fields work fine because they use correct snake_case keys matching sikat tags
+		// Main fields work fine because they use correct snake_case keys matching qwery tags
 		assert.Equal(t, "20020539", output.NIKEmployee)
 		assert.Equal(t, "005054192487", output.ResiNumber)
 		assert.Equal(t, "P-17", output.TicketNumber)
@@ -875,7 +875,7 @@ func TestDecode(t *testing.T) {
 			"Paid should map via field name fallback")
 
 		// Note: InstallmentDate and InstallmentAmount may not map directly due to
-		// complex interaction between sikat tags and field names, but the main
+		// complex interaction between qwery tags and field names, but the main
 		// issue (complete failure) is now resolved
 
 		t.Log("Enhanced mapper now handles PascalCase to struct field mapping!")
@@ -886,31 +886,31 @@ func TestDecode(t *testing.T) {
 		t.Parallel()
 
 		type WebhookSunfishLoanInstallment struct {
-			InstallmentDate   string `sikat:"installment_date"`
-			InstallmentAmount string `sikat:"installment_amount"`
-			Paid              string `sikat:"paid"`
+			InstallmentDate   string `qwery:"installment_date"`
+			InstallmentAmount string `qwery:"installment_amount"`
+			Paid              string `qwery:"paid"`
 		}
 
 		type WebhookSunfishLoan struct {
-			NIKEmployee  string                          `sikat:"nik_employee"`
-			ResiNumber   string                          `sikat:"resi_number"`
-			TicketNumber string                          `sikat:"ticket_number"`
-			LoanType     string                          `sikat:"loan_type"`
-			LoanStatus   string                          `sikat:"loan_status"`
-			LoanAmount   string                          `sikat:"loan_amount"`
-			Tenor        string                          `sikat:"tenor"`
-			LoanNumber   string                          `sikat:"loan_number"`
-			Notes        string                          `sikat:"notes"`
-			LastUpdate   string                          `sikat:"last_update"`
-			CancelDate   string                          `sikat:"cancel_date"`
-			PeriodStart  string                          `sikat:"period_start"`
-			PeriodEnd    string                          `sikat:"period_end"`
-			Installment  []WebhookSunfishLoanInstallment `sikat:"installment"`
-			LoanPaid     string                          `sikat:"loan_paid"`
-			SisaLoan     string                          `sikat:"sisa_loan"`
+			NIKEmployee  string                          `qwery:"nik_employee"`
+			ResiNumber   string                          `qwery:"resi_number"`
+			TicketNumber string                          `qwery:"ticket_number"`
+			LoanType     string                          `qwery:"loan_type"`
+			LoanStatus   string                          `qwery:"loan_status"`
+			LoanAmount   string                          `qwery:"loan_amount"`
+			Tenor        string                          `qwery:"tenor"`
+			LoanNumber   string                          `qwery:"loan_number"`
+			Notes        string                          `qwery:"notes"`
+			LastUpdate   string                          `qwery:"last_update"`
+			CancelDate   string                          `qwery:"cancel_date"`
+			PeriodStart  string                          `qwery:"period_start"`
+			PeriodEnd    string                          `qwery:"period_end"`
+			Installment  []WebhookSunfishLoanInstallment `qwery:"installment"`
+			LoanPaid     string                          `qwery:"loan_paid"`
+			SisaLoan     string                          `qwery:"sisa_loan"`
 		}
 
-		// This is how the JSON SHOULD look to work correctly with sikat tags
+		// This is how the JSON SHOULD look to work correctly with qwery tags
 		input := map[string]interface{}{
 			"cancel_date": "",
 			"installment": []map[string]interface{}{
@@ -952,36 +952,36 @@ func TestDecode(t *testing.T) {
 		assert.Equal(t, "11266.666666666666", output.Installment[0].InstallmentAmount)
 		assert.Equal(t, "Y", output.Installment[0].Paid)
 
-		t.Log("This demonstrates the CORRECT JSON structure that matches sikat tags")
+		t.Log("This demonstrates the CORRECT JSON structure that matches qwery tags")
 
 	})
 }
 
 type WebhookSunfishLoan struct {
-	NIKEmployee                string                          `sikat:"nik_employee"`
-	ResiNumber                 string                          `sikat:"resi_number"`
-	TicketNumber               string                          `sikat:"ticket_number"`
-	LoanType                   string                          `sikat:"loan_type"`
-	LoanStatus                 string                          `sikat:"loan_status"`
-	LoanAmount                 string                          `sikat:"loan_amount"`
-	Tenor                      string                          `sikat:"tenor"`
-	LoanNumber                 string                          `sikat:"loan_number"`
-	Notes                      string                          `sikat:"notes"`
-	LastUpdate                 string                          `sikat:"last_update"`
-	CancelDate                 string                          `sikat:"cancel_date"`
-	PeriodStart                string                          `sikat:"period_start"`
-	PeriodEnd                  string                          `sikat:"period_end"`
-	Installment                []WebhookSunfishLoanInstallment `sikat:"installment"`
-	LoanPaid                   string                          `sikat:"loan_paid"`
-	SisaLoan                   string                          `sikat:"sisa_loan"`
-	LastUpdateTimestamp        time.Time                       `sikat:"last_update_timestamp"`
-	LastUpdateTimestampPointer *time.Time                      `sikat:"last_update_timestamp_pointer"`
+	NIKEmployee                string                          `qwery:"nik_employee"`
+	ResiNumber                 string                          `qwery:"resi_number"`
+	TicketNumber               string                          `qwery:"ticket_number"`
+	LoanType                   string                          `qwery:"loan_type"`
+	LoanStatus                 string                          `qwery:"loan_status"`
+	LoanAmount                 string                          `qwery:"loan_amount"`
+	Tenor                      string                          `qwery:"tenor"`
+	LoanNumber                 string                          `qwery:"loan_number"`
+	Notes                      string                          `qwery:"notes"`
+	LastUpdate                 string                          `qwery:"last_update"`
+	CancelDate                 string                          `qwery:"cancel_date"`
+	PeriodStart                string                          `qwery:"period_start"`
+	PeriodEnd                  string                          `qwery:"period_end"`
+	Installment                []WebhookSunfishLoanInstallment `qwery:"installment"`
+	LoanPaid                   string                          `qwery:"loan_paid"`
+	SisaLoan                   string                          `qwery:"sisa_loan"`
+	LastUpdateTimestamp        time.Time                       `qwery:"last_update_timestamp"`
+	LastUpdateTimestampPointer *time.Time                      `qwery:"last_update_timestamp_pointer"`
 }
 
 type WebhookSunfishLoanInstallment struct {
-	InstallmentDate   string `sikat:"installment_date"`
-	InstallmentAmount string `sikat:"installment_amount"`
-	Paid              string `sikat:"paid"`
+	InstallmentDate   string `qwery:"installment_date"`
+	InstallmentAmount string `qwery:"installment_amount"`
+	Paid              string `qwery:"paid"`
 }
 
 func TestPrintDecode(t *testing.T) {

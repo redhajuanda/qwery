@@ -117,14 +117,14 @@ err = client.Run("user.ListUsers").
 
 ### Query Organization
 
-Sikat organizes queries using a dot notation system based on your file structure:
+Qwery organizes queries using a dot notation system based on your file structure:
 
 - File: `queries/user/GetUser.sql` → Query name: `user.GetUser`
 - File: `queries/product/SearchProducts.sql` → Query name: `product.SearchProducts`
 
 ### Parameter Binding
 
-Sikat uses Go templates for parameter substitution:
+Qwery uses Go templates for parameter substitution:
 
 ```sql
 -- queries/user/SearchUsers.sql
@@ -136,7 +136,7 @@ AND is_active = {{ .is_active }}
 
 ### Scanning Results
 
-Sikat provides multiple ways to scan query results:
+Qwery provides multiple ways to scan query results:
 
 - **Structs**: `ScanStruct(&user)` / `ScanStructs(&users)`
 - **Maps**: `ScanMap(map[string]any{})` / `ScanMaps(&[]map[string]any{})`
@@ -149,8 +149,8 @@ Sikat provides multiple ways to scan query results:
 ```go
 // Create a user
 type CreateUserParams struct {
-    Name  string `sikat:"name"`
-    Email string `sikat:"email"`
+    Name  string `qwery:"name"`
+    Email string `qwery:"email"`
 }
 
 params := CreateUserParams{
@@ -228,19 +228,19 @@ If the order column is nullable, you need to specify `nullable` after the column
 
 ```go
 type User struct {
-    ID    int    `sikat:"id"`
-    Name  string `sikat:"name"`
-    Email string `sikat:"email"`
+    ID    int    `qwery:"id"`
+    Name  string `qwery:"name"`
+    Email string `qwery:"email"`
 }
 
 type Order struct {
-    ID     int    `sikat:"id"`
-    UserID int    `sikat:"user_id"`
-    Amount int    `sikat:"amount"`
+    ID     int    `qwery:"id"`
+    UserID int    `qwery:"user_id"`
+    Amount int    `qwery:"amount"`
 }
 
 // Create user and order in a transaction
-result, err := client.WithTransaction(context.Background(), func(ctx context.Context, tx *sikat.Tx) (any, error) {
+result, err := client.WithTransaction(context.Background(), func(ctx context.Context, tx *qwery.Tx) (any, error) {
     // Create user
     userParams := map[string]any{
         "name":  "John Doe",
@@ -347,34 +347,34 @@ type Option struct {
 
 ### Supported Placeholders
 
-Sikat provides several placeholder formats to support different database systems:
+Qwery provides several placeholder formats to support different database systems:
 
-- **`sikat.Dollar`** (uses `$1`, `$2`, etc.)
+- **`qwery.Dollar`** (uses `$1`, `$2`, etc.)
   - PostgreSQL
 
-- **`sikat.Question`** (uses `?`)
+- **`qwery.Question`** (uses `?`)
   - MySQL
   - MariaDB
   - SQLite
   - Snowflake
 
-- **`sikat.Colon`** (uses `:1`, `:2`, etc.)
+- **`qwery.Colon`** (uses `:1`, `:2`, etc.)
   - Oracle
 
-- **`sikat.AtP`** (uses `@p1`, `@p2`, etc.)
+- **`qwery.AtP`** (uses `@p1`, `@p2`, etc.)
   - SQL Server
 
 ### Struct Tags
 
-Use the `sikat` tag to map database columns to struct fields:
+Use the `qwery` tag to map database columns to struct fields:
 
 ```go
 type User struct {
-    ID        int       `sikat:"id"`
-    Name      string    `sikat:"name"`
-    Email     string    `sikat:"email"`
-    CreatedAt time.Time `sikat:"created_at"`
-    UpdatedAt time.Time `sikat:"updated_at"`
+    ID        int       `qwery:"id"`
+    Name      string    `qwery:"name"`
+    Email     string    `qwery:"email"`
+    CreatedAt time.Time `qwery:"created_at"`
+    UpdatedAt time.Time `qwery:"updated_at"`
 }
 ```
 

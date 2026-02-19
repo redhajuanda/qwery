@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/redhajuanda/komon/logger"
-	"github.com/redis/go-redis/v9"
 
 	"github.com/pkg/errors"
+	"github.com/redhajuanda/komon/cache"
 	"github.com/redhajuanda/qwery/mapper"
 )
 
@@ -27,7 +27,7 @@ type Cacher struct {
 	ttl time.Duration
 
 	// cache
-	cache redis.Cmdable
+	cache cache.Cache
 
 	// logger
 	log logger.Logger
@@ -39,7 +39,7 @@ type Cacher struct {
 }
 
 // newCacher returns a new cacher
-func newCacher(key string, ttl time.Duration, cache redis.Cmdable, log logger.Logger, runner *Runner) *Cacher {
+func newCacher(key string, ttl time.Duration, cache cache.Cache, log logger.Logger, runner *Runner) *Cacher {
 
 	return &Cacher{
 		key:     key,
@@ -60,14 +60,14 @@ func (c *Cacher) tryCache(ctx context.Context) bool {
 		return false
 	}
 
-	c.log.WithContext(ctx).Debug("getting object from cache")
+	c.log.WithContext(ctx).SkipSource().Debug("getting object from cache")
 
 	switch c.runner.scanner.scannerType {
 	case scannerWriter:
 
 		exists, err := c.tryCacheHandlerWriter(ctx)
 		if err != nil {
-			c.log.WithContext(ctx).WithStack(err).Error(err)
+			c.log.WithContext(ctx).SkipSource().WithStack(err).Error(err)
 			return false
 		}
 
@@ -77,7 +77,7 @@ func (c *Cacher) tryCache(ctx context.Context) bool {
 
 		exists, err := c.tryCacheHandlerDefault(ctx)
 		if err != nil {
-			c.log.WithContext(ctx).WithStack(err).Error(err)
+			c.log.WithContext(ctx).SkipSource().WithStack(err).Error(err)
 			return false
 		}
 
@@ -93,7 +93,7 @@ func (c *Cacher) tryCache(ctx context.Context) bool {
 // If any other error occurs, it is logged and returned.
 func (c *Cacher) tryCacheHandlerWriter(ctx context.Context) (bool, error) {
 
-	data, err := c.cache.Get(ctx, c.key).Bytes()
+	data, err := c.cache.Get(ctx, c.key)
 	if err == nil {
 
 		buf := bytes.NewBuffer(data)
@@ -106,7 +106,7 @@ func (c *Cacher) tryCacheHandlerWriter(ctx context.Context) (bool, error) {
 		return true, nil
 	}
 
-	if !errors.Is(err, redis.Nil) { // if error occurs and error is not cache not found, log error
+	if !errors.Is(err, cache.NotFound) { // if error occurs and error is not cache not found, log error
 		err = errors.Wrapf(err, "failed to get object from cache with key %s", c.key)
 		return false, err
 	}
@@ -125,7 +125,7 @@ func (c *Cacher) tryCacheHandlerDefault(ctx context.Context) (bool, error) {
 	)
 
 	// get object from cache
-	err := c.cache.Get(ctx, c.key).Scan(&data)
+	err := c.cache.GetObject(ctx, c.key, &data)
 	if err == nil {
 
 		err := mapper.Decode(data.Dest, &c.runner.scanner.dest)
@@ -136,7 +136,7 @@ func (c *Cacher) tryCacheHandlerDefault(ctx context.Context) (bool, error) {
 		return true, nil // if no error occurs, return response from cache
 	}
 
-	if !errors.Is(err, redis.Nil) { // if error occurs and error is not cache not found, log error
+	if !errors.Is(err, cache.NotFound) { // if error occurs and error is not cache not found, log error
 		err = errors.Wrapf(err, "failed to get object from cache with key %s", c.key)
 		return false, err
 	}
@@ -156,7 +156,7 @@ func (c *Cacher) setCache(ctx context.Context) error {
 		return nil
 	}
 
-	c.log.WithContext(ctx).Debug("setting object to cache")
+	c.log.WithContext(ctx).SkipSource().Debug("setting object to cache")
 
 	return c.setCacheHandler(ctx)
 
@@ -224,7 +224,7 @@ func (c *Cacher) setCacheHandler(ctx context.Context) error {
 	}
 
 	// set object to cache
-	err = c.cache.Set(ctx, c.key, dataMap, ttl).Err()
+	err = c.cache.Set(ctx, c.key, dataMap, ttl)
 	if err != nil {
 		return errors.Wrap(err, "failed to set object to cache")
 	}

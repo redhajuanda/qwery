@@ -161,7 +161,7 @@ func preprocessMapForFlexibleMapping(input map[string]interface{}, targetType re
 	return result
 }
 
-// handlePascalCaseToTagMapping converts PascalCase keys to their corresponding sikat tag names
+// handlePascalCaseToTagMapping converts PascalCase keys to their corresponding qwery tag names
 func handlePascalCaseToTagMapping(input map[string]interface{}, targetType reflect.Type) map[string]interface{} {
 	result := make(map[string]interface{})
 
@@ -188,7 +188,7 @@ func handlePascalCaseToTagMapping(input map[string]interface{}, targetType refle
 	return result
 }
 
-// Deprecated: Use sikat.StructToMap or sikat.MapToStruct instead
+// Deprecated: Use qwery.StructToMap or qwery.MapToStruct instead
 func Decode(input any, output any) error {
 	// Preprocess input if it's a map and output is a struct
 	processedInput := input

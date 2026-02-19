@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 
+	"github.com/redhajuanda/komon/cache"
 	"github.com/redhajuanda/komon/logger"
 	"github.com/redhajuanda/qwery/parser"
-	"github.com/redis/go-redis/v9"
 
 	"github.com/pkg/errors"
 )
@@ -24,7 +24,7 @@ type Client struct {
 	runners     map[string]string
 	placeholder parser.Placeholder
 	log         logger.Logger
-	cache       redis.Cmdable
+	cache       cache.Cache
 }
 
 // Run initializes a new Runner with the given runner code.

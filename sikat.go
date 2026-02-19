@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/redhajuanda/komon/cache"
 	"github.com/redhajuanda/komon/logger"
 	"github.com/redhajuanda/qwery/parser"
-	"github.com/redis/go-redis/v9"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -24,18 +24,18 @@ type Option struct {
 	Placeholder parser.Placeholder
 	// Cache is an interface for caching.
 	// Cache uses redis as the underlying caching library.
-	Cache redis.Cmdable
+	Cache cache.Cache
 }
 
-// Init initializes a new sikat client.
+// Init initializes a new qwery client.
 func Init(log logger.Logger, opt Option) (*Client, error) {
 
-	return initSikat(log, opt)
+	return initQwery(log, opt)
 
 }
 
-// initSikat initializes a new sikat client with the given options.
-func initSikat(log logger.Logger, opt Option) (*Client, error) {
+// initQwery initializes a new qwery client with the given options.
+func initQwery(log logger.Logger, opt Option) (*Client, error) {
 
 	db := sqlx.NewDb(opt.DB, opt.DriverName)
 	if err := db.Ping(); err != nil {
@@ -99,24 +99,13 @@ func initSikat(log logger.Logger, opt Option) (*Client, error) {
 // It uses the underlying cache object to invalidate cache.
 func (c *Client) InvalidateCache(ctx context.Context, key string) error {
 
-	keys := make([]string, 0)
-
-	if strings.Contains(key, "*") {
-		keys = c.cache.Keys(ctx, key).Val()
-	} else {
-		keys = append(keys, key)
+	err := c.cache.Delete(ctx, key)
+	if err != nil {
+		err = errors.Wrapf(err, "failed to invalidate cache with key: %s", key)
+		c.log.WithContext(ctx).SkipSource().WithStack(err).Error(err)
+		return err
 	}
 
-	for _, key := range keys {
-
-		err := c.cache.Del(ctx, key).Err()
-		if err != nil {
-			err = errors.Wrapf(err, "failed to invalidate cache with key: %s", key)
-			c.log.WithContext(ctx).WithStack(err).Error(err)
-			return err
-		}
-
-	}
 	return nil
 
 }
