@@ -12,6 +12,7 @@ import (
 
 	"github.com/redhajuanda/komon/logger"
 	"github.com/redhajuanda/komon/pagination"
+	"github.com/redhajuanda/kuysor"
 	"github.com/redhajuanda/qwery/parser"
 
 	"github.com/jmoiron/sqlx"
@@ -40,6 +41,16 @@ type Runnerer interface {
 	// If no prefix is used, it will default to ascending order.
 	// Example: WithOrderBy("name", "-created_at") will order by name ascending and created_at descending.
 	WithOrderBy(orderBy ...string) Runnerer
+	// WithCTETarget sets the CTE name that pagination should be applied inside.
+	// When set, LIMIT/OFFSET or cursor pagination is injected into the named CTE
+	// instead of being appended to the outer query.
+	// Requires WithPagination to also be set.
+	//
+	// An optional CTEOptions argument provides per-clause routing control:
+	//   - OrderBy:     where ORDER BY is injected (default: CTETargetBoth)
+	//   - LimitOffset: where LIMIT/OFFSET is injected (default: CTETargetCTE)
+	//   - Where:       where the cursor WHERE clause is injected (default: CTETargetCTE)
+	WithCTETarget(cteName string, opts ...CTEOptions) Runnerer
 	// WithCache initializes a new runner with cache.
 	// key is the cache key.
 	// ttl is the cache time to live.
@@ -72,6 +83,12 @@ type Runnerer interface {
 	// Query executes the query and scans the result to the destination.
 	// The destination must be set using ScanMap, ScanMaps, ScanStruct, ScanStructs, or ScanWriter.
 	Query(ctx context.Context) error
+	// Build compiles the query template and parameters without executing against the database.
+	// It mirrors the full Query() pipeline: template parsing, processTabling (ORDER BY / pagination),
+	// and whitespace normalization. If CountTotalData is set on the pagination, CountQuery and
+	// CountParams are also populated on the returned BuildResult.
+	// Useful for unit-testing that the generated SQL and params are correct.
+	Build(ctx context.Context) (*BuildResult, error)
 }
 
 type queryType int
@@ -205,6 +222,20 @@ func (r *Runner) WithOrderBy(orderBy ...string) Runnerer {
 
 }
 
+// WithCTETarget sets the CTE name that pagination should be applied inside.
+func (r *Runner) WithCTETarget(cteName string, opts ...CTEOptions) Runnerer {
+
+	if r.tabling == nil {
+		r.tabling = &Tabling{}
+	}
+	r.tabling.CTETarget = cteName
+	if len(opts) > 0 {
+		r.tabling.CTEOptions = &opts[0]
+	}
+	return r
+
+}
+
 // WithCache initializes a new runner with cache.
 // key is the cache key.
 // ttl is the cache time to live.
@@ -281,7 +312,7 @@ func (r *Runner) Exec(ctx context.Context) (*ResultExec, error) {
 		return nil, err
 	}
 
-	r.log.WithContext(ctx).WithParams(map[string]any{
+	r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{
 		"runner_code": r.getRunnerCode(),
 		"params":      r.params,
 		"placeholder": r.client.placeholder,
@@ -295,7 +326,7 @@ func (r *Runner) Exec(ctx context.Context) (*ResultExec, error) {
 
 	if r.inTransaction {
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.getRunnerCode(), "query": query, "params": parameters}).Info("Executing query in transaction")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.getRunnerCode(), "query": query, "params": parameters}).Info("Executing query in transaction")
 
 		// if in transaction, use the transaction context
 		if r.tx == nil {
@@ -314,7 +345,7 @@ func (r *Runner) Exec(ctx context.Context) (*ResultExec, error) {
 
 	} else {
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.getRunnerCode(), "query": query, "params": parameters}).Info("Executing query")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.getRunnerCode(), "query": query, "params": parameters}).Info("Executing query")
 
 		// execute query
 		result, err = r.client.db.ExecContext(ctx, query, parameters...)
@@ -351,7 +382,7 @@ func (r *Runner) Query(ctx context.Context) error {
 		return err
 	}
 
-	r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.getRunnerCode(), "params": r.params, "placeholder": r.client.placeholder}).Debug("Parsing query")
+	r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.getRunnerCode(), "params": r.params, "placeholder": r.client.placeholder}).Debug("Parsing query")
 
 	// parse query
 	queryParsed, parametersParsed, err := ps.Parse(ctx, queryTemplate, r.params, r.client.placeholder)
@@ -374,7 +405,7 @@ func (r *Runner) Query(ctx context.Context) error {
 
 	if r.inTransaction {
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode, "query": queryFinal, "params": parametersFinal}).Info("Querying query in transaction")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode, "query": queryFinal, "params": parametersFinal}).Info("Querying query in transaction")
 
 		// if in transaction, use the transaction context
 		if r.tx == nil {
@@ -393,11 +424,16 @@ func (r *Runner) Query(ctx context.Context) error {
 
 		if r.tabling != nil && r.tabling.Pagination != nil && r.tabling.Pagination.CountTotalData {
 
-			countQuery := fmt.Sprintf(`SELECT COUNT(1) AS total_data FROM ( %s ) AS sub`, queryParsed)
+			countQuery, err := kuysor.NewCount(queryParsed).UseColumn("*").Build()
+			if err != nil {
+				return errors.Wrap(err, "failed to build count query")
+			}
 
-			r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode, "query": countQuery, "params": parametersParsed}).Info("Querying count query")
+			countParams := parametersParsed
 
-			countRow := tx.QueryRowxContext(ctx, countQuery, parametersParsed...)
+			r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode, "query": countQuery, "params": countParams}).Info("Querying count query")
+
+			countRow := tx.QueryRowxContext(ctx, countQuery, countParams...)
 			err = countRow.Scan(&totalData)
 			if err != nil {
 				return errors.Wrap(err, "failed to execute count query for offset pagination")
@@ -407,7 +443,7 @@ func (r *Runner) Query(ctx context.Context) error {
 
 	} else {
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode, "query": queryFinal, "params": parametersFinal}).Info("Querying query")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode, "query": queryFinal, "params": parametersFinal}).Info("Querying query")
 
 		// execute query
 		rows, err = r.client.db.QueryxContext(ctx, queryFinal, parametersFinal...)
@@ -417,11 +453,16 @@ func (r *Runner) Query(ctx context.Context) error {
 
 		if r.tabling != nil && r.tabling.Pagination != nil && r.tabling.Pagination.CountTotalData {
 
-			countQuery := fmt.Sprintf(`SELECT COUNT(1) AS total_data FROM ( %s ) AS sub`, queryParsed)
+			countQuery, err := kuysor.NewCount(queryParsed).UseColumn("*").Build()
+			if err != nil {
+				return errors.Wrap(err, "failed to build count query")
+			}
 
-			r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode, "query": countQuery, "params": parametersParsed}).Info("Querying count query for offset pagination")
+			countParams := parametersParsed
 
-			countRow := r.client.db.QueryRowxContext(ctx, countQuery, parametersParsed...)
+			r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode, "query": countQuery, "params": countParams}).Info("Querying count query for offset pagination")
+
+			countRow := r.client.db.QueryRowxContext(ctx, countQuery, countParams...)
 			err = countRow.Scan(&totalData)
 			if err != nil {
 				return errors.Wrap(err, "failed to execute count query for offset pagination")
@@ -468,7 +509,7 @@ func (r *Runner) scan(ctx context.Context, sc Scannerer) error {
 	switch r.scanner.scannerType {
 	case scannerMap:
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner map")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner map")
 
 		err := sc.ScanMap(r.scanner.dest.(map[string]any))
 		if err != nil {
@@ -477,7 +518,7 @@ func (r *Runner) scan(ctx context.Context, sc Scannerer) error {
 
 	case scannerMaps:
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner maps")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner maps")
 
 		err := sc.ScanMaps(r.scanner.dest.(*[]map[string]any))
 		if err != nil {
@@ -486,7 +527,7 @@ func (r *Runner) scan(ctx context.Context, sc Scannerer) error {
 
 	case scannerStruct:
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner struct")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner struct")
 
 		err := sc.ScanStruct(r.scanner.dest)
 		if err != nil {
@@ -495,7 +536,7 @@ func (r *Runner) scan(ctx context.Context, sc Scannerer) error {
 
 	case scannerStructs:
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner structs")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner structs")
 
 		err := sc.ScanStructs(r.scanner.dest)
 		if err != nil {
@@ -504,7 +545,7 @@ func (r *Runner) scan(ctx context.Context, sc Scannerer) error {
 
 	case scannerWriter:
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner writer")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("scanning result into scanner writer")
 
 		err := sc.ScanWriter(r.scanner.dest.(io.Writer))
 		if err != nil {
@@ -513,7 +554,7 @@ func (r *Runner) scan(ctx context.Context, sc Scannerer) error {
 
 	default:
 
-		r.log.WithContext(ctx).WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("no scanner type found, closing scanner")
+		r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.runnerCode}).Debug("no scanner type found, closing scanner")
 
 		err := sc.Close()
 		if err != nil {
@@ -523,6 +564,52 @@ func (r *Runner) scan(ctx context.Context, sc Scannerer) error {
 	}
 
 	return nil
+}
+
+// Build compiles the query template and parameters without executing against the database.
+func (r *Runner) Build(ctx context.Context) (*BuildResult, error) {
+
+	if len(r.errs) > 0 {
+		return nil, r.errs[0]
+	}
+
+	queryTemplate, err := r.getQueryTemplate()
+	if err != nil {
+		return nil, err
+	}
+
+	ps := parser.New()
+	queryParsed, paramsParsed, err := ps.Parse(ctx, queryTemplate, r.params, r.client.placeholder)
+	if err != nil {
+		return nil, err
+	}
+
+	rs, err := processTabling(ctx, r.client, r.tabling, queryParsed, paramsParsed...)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build pagination")
+	}
+
+	// normalize whitespace — mirrors what Query() does before executing
+	replacer := strings.NewReplacer("\n", " ", "\t", " ", "\r", " ")
+	queryParsed = replacer.Replace(queryParsed)
+	queryFinal := replacer.Replace(rs.Query)
+
+	result := &BuildResult{
+		Query:  queryFinal,
+		Params: rs.Args,
+	}
+
+	if r.tabling != nil && r.tabling.Pagination != nil && r.tabling.Pagination.CountTotalData {
+		countQuery, err := kuysor.NewCount(queryParsed).UseColumn("*").Build()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to build count query")
+		}
+		result.CountQuery = countQuery
+		result.CountParams = paramsParsed
+	}
+
+	return result, nil
+
 }
 
 // getQueryTemplate returns the query template based on the query type.

@@ -94,6 +94,22 @@ func initQwery(log logger.Logger, opt Option) (*Client, error) {
 
 }
 
+// NewTestClient creates a Client suitable for use in unit tests.
+// It does not require a real database connection — the DB field is left nil,
+// so only Build() may be called on runners produced by this client.
+// runners is the map of runner-code → SQL template (the same format loaded from .sql files).
+// placeholder is the placeholder format to use when compiling queries.
+func NewTestClient(log logger.Logger, runners map[string]string, placeholder parser.Placeholder) *Client {
+	if runners == nil {
+		runners = make(map[string]string)
+	}
+	return &Client{
+		runners:     runners,
+		placeholder: placeholder,
+		log:         log,
+	}
+}
+
 // InvalidateCache invalidates cache for the given key.
 // It returns an error if there is a failure in invalidating cache.
 // It uses the underlying cache object to invalidate cache.

@@ -69,7 +69,7 @@ func (c *Client) WithTransaction(ctx context.Context, callback TxFunc) (out any,
 	tx := newTx(c, c.log)
 
 	// begin transaction
-	c.log.WithContext(ctx).Debug("beginning transaction")
+	c.log.WithContext(ctx).SkipSource().Debug("beginning transaction")
 	err = tx.Begin(ctx)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to begin transaction")
@@ -82,7 +82,7 @@ func (c *Client) WithTransaction(ctx context.Context, callback TxFunc) (out any,
 	defer c.handleTransactionWithTx(ctx, tx, &err)
 
 	// execute callback
-	c.log.WithContext(ctx).Debug("executing callback")
+	c.log.WithContext(ctx).SkipSource().Debug("executing callback")
 	out, err = callback(tx)
 
 	return
@@ -120,7 +120,7 @@ func (c *Client) handleTransactionWithTx(ctx context.Context, tx *Tx, errIn *err
 
 	if p := recover(); p != nil {
 
-		c.log.WithContext(ctx).Debug("panic occurred, rolling back transaction")
+		c.log.WithContext(ctx).SkipSource().Debug("panic occurred, rolling back transaction")
 
 		err := tx.Rollback()
 		if err != nil {
@@ -130,7 +130,7 @@ func (c *Client) handleTransactionWithTx(ctx context.Context, tx *Tx, errIn *err
 
 	} else if *errIn != nil {
 
-		c.log.WithContext(ctx).Debug("error occurred, rolling back transaction")
+		c.log.WithContext(ctx).SkipSource().Debug("error occurred, rolling back transaction")
 
 		err := tx.Rollback()
 		if err != nil {
@@ -139,7 +139,7 @@ func (c *Client) handleTransactionWithTx(ctx context.Context, tx *Tx, errIn *err
 
 	} else {
 
-		c.log.WithContext(ctx).Debug("committing transaction")
+		c.log.WithContext(ctx).SkipSource().Debug("committing transaction")
 
 		err := tx.Commit()
 		if err != nil {

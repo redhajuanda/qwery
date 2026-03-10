@@ -29,7 +29,7 @@ type responser struct {
 // ScanStruct scans the first row of the result set into the provided struct
 func (r *responser) ScanStruct(dest any) error {
 
-	r.log.Debug("Scanning into struct")
+	r.log.SkipSource().Debug("Scanning into struct")
 
 	if dest == nil {
 		return errors.New("destination cannot be nil")
@@ -71,7 +71,7 @@ func (r *responser) ScanStruct(dest any) error {
 // The destination must be a map with string keys
 func (r *responser) ScanMap(dest map[string]any) error {
 
-	r.log.Debug("Scanning into map[string]any")
+	r.log.SkipSource().Debug("Scanning into map[string]any")
 
 	if dest == nil {
 		return errors.New("destination cannot be nil")
@@ -96,7 +96,7 @@ func (r *responser) ScanMap(dest map[string]any) error {
 // The destination must be a pointer to a slice of structs
 func (r *responser) ScanStructs(dest any) error {
 
-	r.log.Debug("Scanning into slice of structs")
+	r.log.SkipSource().Debug("Scanning into slice of structs")
 
 	// Ensure v is a pointer to a slice
 	sliceValue := reflect.ValueOf(dest)
@@ -140,7 +140,7 @@ func (r *responser) ScanStructs(dest any) error {
 // The destination must be a pointer to a slice of maps
 func (r *responser) ScanMaps(dest *[]map[string]any) error {
 
-	r.log.Debug("Scanning into slice of maps")
+	r.log.SkipSource().Debug("Scanning into slice of maps")
 
 	defer r.rows.Close()
 
@@ -181,7 +181,7 @@ func (r *responser) ScanMaps(dest *[]map[string]any) error {
 // The destination must be a writer
 func (r *responser) ScanWriter(dest io.Writer) error {
 
-	r.log.Debug("Scanning into writer")
+	r.log.SkipSource().Debug("Scanning into writer")
 
 	result := make([]map[string]any, 0)
 

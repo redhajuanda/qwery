@@ -27,10 +27,43 @@ var (
 	AtP = tqla.AtP
 )
 
+// CTETargetMode controls where a specific SQL clause is injected when
+// WithCTETarget is active. Mirrors kuysor.CTETargetMode.
+type CTETargetMode int
+
+const (
+	// CTETargetDefault uses the natural default for each clause:
+	// ORDER BY defaults to Both, LIMIT/OFFSET and WHERE default to CTE.
+	CTETargetDefault CTETargetMode = iota
+	// CTETargetCTE injects the clause inside the named CTE body only.
+	CTETargetCTE
+	// CTETargetMain injects the clause on the outer/main query only.
+	CTETargetMain
+	// CTETargetBoth injects the clause in both the CTE body and the main query.
+	CTETargetBoth
+)
+
+// CTEOptions provides per-clause control over where each SQL modification is
+// applied when WithCTETarget is active.
+// Zero value (CTETargetDefault) uses natural defaults:
+//   - OrderBy     → CTETargetBoth  (CTE body + mirrored on main)
+//   - LimitOffset → CTETargetCTE   (CTE body only)
+//   - Where       → CTETargetCTE   (CTE body only)
+type CTEOptions struct {
+	// OrderBy controls where ORDER BY is injected.
+	OrderBy CTETargetMode
+	// LimitOffset controls where LIMIT and OFFSET are injected.
+	LimitOffset CTETargetMode
+	// Where controls where the cursor WHERE clause is injected.
+	Where CTETargetMode
+}
+
 type Tabling struct {
 	OrderBy    []string
 	Pagination *pagination.Pagination
 	TotalData  *int
+	CTETarget  string
+	CTEOptions *CTEOptions
 }
 
 var placeholderMapping = map[parser.Placeholder]kuysor.PlaceHolderType{
@@ -56,6 +89,20 @@ func buildTabling(pagination *pagination.Pagination) (*pagination.Pagination, er
 
 	return pagination, nil
 
+}
+
+// mapCTEMode converts a qwery CTETargetMode to the equivalent kuysor.CTETargetMode.
+func mapCTEMode(m CTETargetMode) kuysor.CTETargetMode {
+	switch m {
+	case CTETargetCTE:
+		return kuysor.CTETargetModeCTE
+	case CTETargetMain:
+		return kuysor.CTETargetModeMain
+	case CTETargetBoth:
+		return kuysor.CTETargetModeBoth
+	default:
+		return kuysor.CTETargetModeDefault
+	}
 }
 
 func processTabling(_ context.Context, client *Client, tabling *Tabling, query string, parameters ...any) (*kuysor.Result, error) {
@@ -86,6 +133,18 @@ func processTabling(_ context.Context, client *Client, tabling *Tabling, query s
 		ks = ks.WithLimit(tabling.Pagination.PerPage).
 			WithCursor(tabling.Pagination.Cursor)
 
+		if tabling.CTETarget != "" {
+			if tabling.CTEOptions != nil {
+				ks = ks.WithCTETarget(tabling.CTETarget, kuysor.CTEOptions{
+					OrderBy:     mapCTEMode(tabling.CTEOptions.OrderBy),
+					LimitOffset: mapCTEMode(tabling.CTEOptions.LimitOffset),
+					Where:       mapCTEMode(tabling.CTEOptions.Where),
+				})
+			} else {
+				ks = ks.WithCTETarget(tabling.CTETarget)
+			}
+		}
+
 		res, err := ks.Build()
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to build kuysor query")
@@ -100,6 +159,18 @@ func processTabling(_ context.Context, client *Client, tabling *Tabling, query s
 
 		if len(tabling.OrderBy) > 0 {
 			ks = ks.WithOrderBy(tabling.OrderBy...)
+		}
+
+		if tabling.CTETarget != "" {
+			if tabling.CTEOptions != nil {
+				ks = ks.WithCTETarget(tabling.CTETarget, kuysor.CTEOptions{
+					OrderBy:     mapCTEMode(tabling.CTEOptions.OrderBy),
+					LimitOffset: mapCTEMode(tabling.CTEOptions.LimitOffset),
+					Where:       mapCTEMode(tabling.CTEOptions.Where),
+				})
+			} else {
+				ks = ks.WithCTETarget(tabling.CTETarget)
+			}
 		}
 
 		ks = ks.WithLimit(tabling.Pagination.PerPage)

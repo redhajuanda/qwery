@@ -10,10 +10,10 @@ import (
 )
 
 // Custom type for JSON handling using map
-type JSONMap map[string]interface{}
+type JSONMap map[string]any
 
 // Implement the sql.Scanner interface
-func (j *JSONMap) Scan(value interface{}) error {
+func (j *JSONMap) Scan(value any) error {
 	if value == nil {
 		*j = make(JSONMap) // Handle NULL values by initializing an empty map
 		return nil
@@ -33,7 +33,7 @@ func (j JSONMap) Value() (driver.Value, error) {
 }
 
 // Parse the JSON map to a struct
-func (j JSONMap) Parse(dest interface{}) error {
+func (j JSONMap) Parse(dest any) error {
 
 	return mapstructure.Decode(j, dest)
 }
@@ -59,21 +59,3 @@ func (t *Time) MarshalText() ([]byte, error) {
 	// Format the time to a custom format, without the 'Z' at the end
 	return []byte(time.Time(*t).Format("2006-01-02 15:04:05")), nil
 }
-
-// func (c *CustomType) UnmarshalText(text []byte) error {
-// 	// Custom logic to handle different input formats
-// 	if len(text) > 0 && text[0] == '{' {
-// 		var obj map[string]interface{}
-// 		if err := json.Unmarshal(text, &obj); err != nil {
-// 			return fmt.Errorf("failed to unmarshal CustomType: %w", err)
-// 		}
-// 		if val, ok := obj["value"].(string); ok {
-// 			c.Value = val
-// 			return nil
-// 		}
-// 		return fmt.Errorf("missing 'value' field in JSON")
-
-// 	}
-// 	c.Value = string(text)
-// 	return nil
-// }
