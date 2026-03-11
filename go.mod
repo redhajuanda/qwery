@@ -9,7 +9,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/pkg/errors v0.9.1
 	github.com/redhajuanda/komon v1.0.2
-	github.com/redhajuanda/kuysor v1.0.4
+	github.com/redhajuanda/kuysor v1.0.5
 	github.com/stretchr/testify v1.10.0
 	go.uber.org/mock v0.5.2
 )
