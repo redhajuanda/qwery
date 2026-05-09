@@ -5,6 +5,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/redhajuanda/komon/cache"
 	"github.com/stretchr/testify/assert"
 	// "gitlab.sicepat.tech/platform/qweryalog-sdk-go.git/latency"
 	"github.com/redhajuanda/komon/logger"
@@ -46,8 +47,13 @@ func TestCacherTryCache(t *testing.T) {
 			},
 		}
 
-		// instrument the cacheMock
-		cacheMock.EXPECT().Get(gomock.Any(), gomock.Any()).Return([]byte(`{"test":"test"}`), nil)
+		// instrument the cacheMock — Get decodes into *map[string]interface{} for the writer path
+		cacheMock.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Do(
+			func(ctx context.Context, key string, dest any, _ ...cache.Option) {
+				m := dest.(*map[string]interface{})
+				*m = map[string]interface{}{"test": "test"}
+			},
+		).Return(nil)
 
 		result := c.tryCache(ctx)
 
@@ -58,43 +64,32 @@ func TestCacherTryCache(t *testing.T) {
 
 	t.Run("ScannerDefault", func(t *testing.T) {
 
-		var (
-			dest = CacheData{}
-		)
+		dest := make(map[string]any)
 
 		c := &Cacher{
 			doCache: true,
 			cache:   cacheMock,
 			log:     logger.New("test"),
 			runner: &Runner{
-				// result: &result.Result{
-				// 	Metadata: &result.Metadata{
-				// 		HTTP: &result.HTTPData{},
-				// 	},
-				// },
 				scanner: &Scanner{
 					scannerType: scannerMap,
-					dest:        &dest,
+					dest:        dest,
 				},
 			},
 		}
 
-		// instrument the cacheMock
-		cacheMock.EXPECT().
-			GetObject(gomock.Any(), gomock.Any(), &dest).
-			Do(func(ctx context.Context, key string, doc interface{}) error {
-
-				// set the dest
-				dest.Dest = map[string]interface{}{"test": "test"}
-				return nil
-			}).
-			Return(nil)
+		// Default path calls Get(ctx, key, *CacheData); mock fills CacheData.Dest for mapper.Decode into scanner dest (map).
+		cacheMock.EXPECT().Get(gomock.Any(), gomock.Any(), gomock.Any()).Do(
+			func(ctx context.Context, key string, doc any, _ ...cache.Option) {
+				d := doc.(*CacheData)
+				d.Dest = map[string]interface{}{"test": "test"}
+			},
+		).Return(nil)
 
 		result := c.tryCache(ctx)
 
 		assert.True(t, result)
-		assert.Equal(t, map[string]interface{}{"test": "test"}, c.runner.scanner.dest.(*CacheData).Dest)
-
+		assert.Equal(t, map[string]any{"test": "test"}, c.runner.scanner.dest.(map[string]any))
 	})
 
 }

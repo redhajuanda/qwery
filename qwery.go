@@ -115,7 +115,7 @@ func NewTestClient(log logger.Logger, runners map[string]string, placeholder par
 // It uses the underlying cache object to invalidate cache.
 func (c *Client) InvalidateCache(ctx context.Context, key string) error {
 
-	err := c.cache.Delete(ctx, key)
+	err := c.cache.Del(ctx, key)
 	if err != nil {
 		err = errors.Wrapf(err, "failed to invalidate cache with key: %s", key)
 		c.log.WithContext(ctx).SkipSource().WithStack(err).Error(err)

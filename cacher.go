@@ -3,14 +3,17 @@ package qwery
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"time"
 
-	"github.com/redhajuanda/komon/logger"
-
-	"github.com/pkg/errors"
 	"github.com/redhajuanda/komon/cache"
+	"github.com/redhajuanda/komon/logger"
 	"github.com/redhajuanda/qwery/mapper"
+
+	"errors"
+
+	pkgerrors "github.com/pkg/errors"
 )
 
 type CacheData struct {
@@ -93,21 +96,26 @@ func (c *Cacher) tryCache(ctx context.Context) bool {
 // If any other error occurs, it is logged and returned.
 func (c *Cacher) tryCacheHandlerWriter(ctx context.Context) (bool, error) {
 
-	data, err := c.cache.Get(ctx, c.key)
+	var dataMap map[string]interface{}
+	err := c.cache.Get(ctx, c.key, &dataMap)
 	if err == nil {
 
-		buf := bytes.NewBuffer(data)
+		b, mErr := json.Marshal(dataMap)
+		if mErr != nil {
+			return false, pkgerrors.Wrap(mErr, "cannot marshal cached map for writer")
+		}
+		buf := bytes.NewBuffer(b)
 
 		_, err = io.Copy(c.runner.scanner.dest.(io.Writer), buf)
 		if err != nil {
-			return false, errors.Wrap(err, "cannot copy writer")
+			return false, pkgerrors.Wrap(err, "cannot copy writer")
 		}
 
 		return true, nil
 	}
 
-	if !errors.Is(err, cache.NotFound) { // if error occurs and error is not cache not found, log error
-		err = errors.Wrapf(err, "failed to get object from cache with key %s", c.key)
+	if !errors.Is(err, cache.ErrNotFound) { // if error occurs and error is not cache not found, log error
+		err = pkgerrors.Wrapf(err, "failed to get object from cache with key %s", c.key)
 		return false, err
 	}
 
@@ -125,7 +133,7 @@ func (c *Cacher) tryCacheHandlerDefault(ctx context.Context) (bool, error) {
 	)
 
 	// get object from cache
-	err := c.cache.GetObject(ctx, c.key, &data)
+	err := c.cache.Get(ctx, c.key, &data)
 	if err == nil {
 
 		err := mapper.Decode(data.Dest, &c.runner.scanner.dest)
@@ -136,8 +144,8 @@ func (c *Cacher) tryCacheHandlerDefault(ctx context.Context) (bool, error) {
 		return true, nil // if no error occurs, return response from cache
 	}
 
-	if !errors.Is(err, cache.NotFound) { // if error occurs and error is not cache not found, log error
-		err = errors.Wrapf(err, "failed to get object from cache with key %s", c.key)
+	if !errors.Is(err, cache.ErrNotFound) { // if error occurs and error is not cache not found, log error
+		err = pkgerrors.Wrapf(err, "failed to get object from cache with key %s", c.key)
 		return false, err
 	}
 
@@ -224,9 +232,9 @@ func (c *Cacher) setCacheHandler(ctx context.Context) error {
 	}
 
 	// set object to cache
-	err = c.cache.Set(ctx, c.key, dataMap, ttl)
+	err = c.cache.Set(ctx, c.key, dataMap, cache.WithTTL(ttl))
 	if err != nil {
-		return errors.Wrap(err, "failed to set object to cache")
+		return pkgerrors.Wrap(err, "failed to set object to cache")
 	}
 
 	return nil
