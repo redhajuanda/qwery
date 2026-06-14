@@ -20,11 +20,12 @@ type Runable interface {
 // It contains the database connection, runners, placeholder format, and logger.
 // It provides methods to run queries and manage transactions.
 type Client struct {
-	db          *DB
-	runners     map[string]string
-	placeholder parser.Placeholder
-	log         logger.Logger
-	cache       cache.Cache
+	db              *DB
+	runners         map[string]string
+	placeholder     parser.Placeholder
+	log             logger.Logger
+	cache           cache.Cache
+	templateFuncMap map[string]any
 }
 
 // Run initializes a new Runner with the given runner code.

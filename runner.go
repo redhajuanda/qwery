@@ -319,7 +319,7 @@ func (r *Runner) Exec(ctx context.Context) (*ResultExec, error) {
 	}).Debug("Parsing query")
 
 	// parse query
-	query, parameters, err := ps.Parse(ctx, queryTemplate, r.params, r.client.placeholder)
+	query, parameters, err := ps.Parse(ctx, queryTemplate, r.params, r.client.placeholder, r.client.templateFuncMap)
 	if err != nil {
 		return nil, err
 	}
@@ -385,7 +385,7 @@ func (r *Runner) Query(ctx context.Context) error {
 	r.log.WithContext(ctx).SkipSource().WithParams(map[string]any{"runner_code": r.getRunnerCode(), "params": r.params, "placeholder": r.client.placeholder}).Debug("Parsing query")
 
 	// parse query
-	queryParsed, parametersParsed, err := ps.Parse(ctx, queryTemplate, r.params, r.client.placeholder)
+	queryParsed, parametersParsed, err := ps.Parse(ctx, queryTemplate, r.params, r.client.placeholder, r.client.templateFuncMap)
 	if err != nil {
 		return err
 	}
@@ -579,7 +579,7 @@ func (r *Runner) Build(ctx context.Context) (*BuildResult, error) {
 	}
 
 	ps := parser.New()
-	queryParsed, paramsParsed, err := ps.Parse(ctx, queryTemplate, r.params, r.client.placeholder)
+	queryParsed, paramsParsed, err := ps.Parse(ctx, queryTemplate, r.params, r.client.placeholder, r.client.templateFuncMap)
 	if err != nil {
 		return nil, err
 	}

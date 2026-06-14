@@ -224,7 +224,7 @@ func TestRunnerBuild(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			client := NewTestClient(log, runners, Question)
+			client := NewTestClient(log, runners, Question, nil)
 			result, err := tt.setup(client).Build(ctx)
 
 			if tt.wantErr {

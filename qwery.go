@@ -25,6 +25,9 @@ type Option struct {
 	// Cache is an interface for caching.
 	// Cache uses redis as the underlying caching library.
 	Cache cache.Cache
+	// TemplateFuncMap is the map of template functions.
+	// It is used to add custom template functions to the query template.
+	TemplateFuncMap map[string]any
 }
 
 // Init initializes a new qwery client.
@@ -85,11 +88,12 @@ func initQwery(log logger.Logger, opt Option) (*Client, error) {
 	}
 
 	return &Client{
-		db:          &DB{DB: db},
-		runners:     runners,
-		placeholder: opt.Placeholder,
-		log:         log,
-		cache:       opt.Cache,
+		db:              &DB{DB: db},
+		runners:         runners,
+		placeholder:     opt.Placeholder,
+		log:             log,
+		cache:           opt.Cache,
+		templateFuncMap: opt.TemplateFuncMap,
 	}, nil
 
 }
@@ -99,14 +103,15 @@ func initQwery(log logger.Logger, opt Option) (*Client, error) {
 // so only Build() may be called on runners produced by this client.
 // runners is the map of runner-code → SQL template (the same format loaded from .sql files).
 // placeholder is the placeholder format to use when compiling queries.
-func NewTestClient(log logger.Logger, runners map[string]string, placeholder parser.Placeholder) *Client {
+func NewTestClient(log logger.Logger, runners map[string]string, placeholder parser.Placeholder, templateFuncMap map[string]any) *Client {
 	if runners == nil {
 		runners = make(map[string]string)
 	}
 	return &Client{
-		runners:     runners,
-		placeholder: placeholder,
-		log:         log,
+		runners:         runners,
+		placeholder:     placeholder,
+		log:             log,
+		templateFuncMap: templateFuncMap,
 	}
 }
 
